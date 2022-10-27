@@ -1,23 +1,15 @@
-<script>
-import { logout, subscribeToAuthChanges} from "./services/auth.js";
+<script setup>
+import { logout} from "./services/auth.js";
+import {useRouter} from "vue-router";
+import useAuth from "./composition/useAuth";
 
-export default {
-    name: "App",
-    data: () => ({
-        user: {
-            id: null,
-            email: null,
-        }
-    }),
-    methods: {
-        handleLogout() {
-            logout();
-        }
-    },
-    mounted() {
-        subscribeToAuthChanges(newUserData => this.user = newUserData);
-    }
-};
+const router = useRouter();
+const {user} = useAuth();
+
+function handleLogout() {
+  logout();
+  router.push('/iniciar-sesion');
+}
 </script>
 
 <template>
@@ -53,7 +45,7 @@ export default {
                     </li>
                     <li class="nav-item">
                             <form action="#" method="post" @submit.prevent="handleLogout">
-                                <button class="btn nav-link bg-info text-dark">Cerrar Sesión {{user.email}}}</button>
+                                <button class="btn nav-link bg-info text-dark">Cerrar Sesión {{user.email}}</button>
                             </form>
                         </li>
                 </template>

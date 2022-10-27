@@ -1,11 +1,12 @@
 import {
     getAuth,
     signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
     updateProfile,
+    createUserWithEmailAndPassword,
 } from 'firebase/auth';
+import {createUserProfile, updateUserProfile as updateUserProfileInDatabase} from "./user-profiles.js";
 
 
 const auth = getAuth();
@@ -57,21 +58,29 @@ export function logout() {
     return signOut(auth);
 }
 
-export function register({ email, password }) {
-    return createUserWithEmailAndPassword(auth, email, password);
+export async function register({ email, password }) {
+    const {user} = await createUserWithEmailAndPassword(auth, email, password);
+
+    return createUserProfile(user.uid, {
+        email,
+    });
 }
 
-export function updateUserProfile({ displayName }) {
-    return updateProfile(auth.currentUser, {
+export async function updateUserProfile({ displayName }) {
+    const authPromise = updateProfile(auth.currentUser, {
             displayName,
-        })
-        .then(() => {
-            userData = {
-                ...userData,
-                displayName,
-            }
-            notifyAll();
-        });
+    });
+    const profilePromise = updateUserProfileInDatabase(userData.id, {
+        displayName,
+    });
+
+    await Promise.all([authPromise, profilePromise]);
+
+    userData = {
+        ...userData,
+        displayName,
+    }
+    notifyAll();
 }
 // Observers
 
@@ -83,7 +92,6 @@ export function subscribeToAuthChanges(callback) {
     notify(callback);
 
     return () => {
-        // filtrar el array de observer para quitar el que se agrego
         observers = observers.filter(observerCallback => observerCallback !== callback);
     }
 }

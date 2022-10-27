@@ -31,7 +31,7 @@ module.exports = {
             //  reglas para Vue.
             {
                 test: /\.vue$/,
-                use: 'vue-loader', // Noten que como no necesitamos configurar nada del loader, podemos pasarlo simplemente como un string.
+                use: 'vue-loader',
             },
             //  loaders para CSS.
             {

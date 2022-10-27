@@ -7,10 +7,11 @@ import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 
  * @param {string} message
  * @return {Promise<string>}
  */
-export function saveChatMessage({ name, text }) {
+export function saveChatMessage({ userId, name, text }) {
     const chatRef = collection(db, 'chat');
     const data = {
         name,
+        userId,
         text,
 
         created_at: serverTimestamp(),

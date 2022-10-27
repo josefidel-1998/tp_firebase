@@ -29,7 +29,7 @@ export default {
 <template>
     <!--Hero Image-->
     <section class="container-fluid w-100 hero">
-        <h2 class="mt-5 row">Embárcate en un épico viaje mientras Kratos y Atreus luchan por aferrarse y soltar</h2>
+        <h2 class="mt-5 row">Embárcate en un épico viaje mientras Kratos y Atreus luchan por aferrarse y soltar.</h2>
 
         <p class="w-50">Atreus busca conocimiento que lo ayude a entender la 
             profecía de "Loki" y establecer su rol en Ragnarök. 

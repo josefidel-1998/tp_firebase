@@ -1,59 +1,60 @@
-<script>
+<script setup>
+import {onMounted, onUnmounted, ref} from "vue";
 import {saveChatMessage, subscribeToChatMessages} from "../chat/chat.js";
-import {subscribeToAuthChanges} from '../services/auth'
 import {dateToString} from "../helpers/date.js";
-import Loader from "../components/Loader.vue";
 import LoadingContext from "../components/LoadingContext.vue";
+import useAuth from "../composition/useAuth";
+import ChatMessageUser from "../components/ChatMessageUser.vue";
+
+const {messages, messagesLoaded} = useChat();
+const {newMessage, save} = useChatForm();
+const {user} = useAuth();
+
+function useChat() {
+  const messages = ref([]);
+  const messagesLoaded = ref(false);
 
 
-export default {
-    name: "Chat",
-    components: {LoadingContext, Loader},
+  let unsubscribe;
 
-    
-    data: () => ({
-        messages: [],
-        newMessage: {
-            //name: '',
-            text: '',
-        },
-        user: {
-            id: null,
-            email: null,
-            displayName: null
-        },
-        messagesLoaded: false,
-        unsubscribeFunction: () => {},
-        unsubscribeAuthFunction: () => {},
-        
-    }),
-    methods: {
-        
-        dateToString,
-        
-        save() {
-            
-            saveChatMessage({
-                ...this.newMessage,
-                name: this.user.displayName || this.user.email
-            });
-            this.newMessage.text = "";
-        },
-    },
-    mounted() {
-        
-        this.unsubscribeFunction = subscribeToChatMessages(newMessages => {
-            
-            this.messages = newMessages;
-            this.messagesLoaded = true;
-        });
-        this.unsubscribeAuthFunction = subscribeToAuthChanges(newUserData => this.user = newUserData);
-    },
-    unmounted() {
-        this.unsubscribeFunction();
-        this.unsubscribeAuthFunction();
-    }
-};
+  onMounted(() => {
+    unsubscribe = subscribeToChatMessages( newMessages => {
+      messages.value = newMessages;
+      messagesLoaded.value = true;
+    });
+  });
+
+  onUnmounted(() => {
+    unsubscribe();
+  });
+
+  return {
+    messages,
+    messagesLoaded,
+  }
+
+}
+
+function useChatForm() {
+  const newMessage = ref({
+    text: '',
+  });
+
+  function save() {
+
+    saveChatMessage({
+      ...newMessage.value,
+      name: user.value.displayName || user.value.email,
+      userId: user.value.id,
+    });
+    newMessage.value.text = "";
+  }
+  return {
+    newMessage,
+    save,
+  }
+}
+
 </script>
 
 <template>
@@ -70,7 +71,14 @@ export default {
                                 v-for="message in messages"
                                 :key="message.id"
                             >
-                                <b>({{ dateToString(message.created_at) }}) {{ message.name }} dijo</b>: {{ message.text }}
+                                <b>
+                                  ({{ dateToString(message.created_at) }})
+                                  <ChatMessageUser
+                                    :message="message"
+                                    :show-link="message.userId !== user.id"
+                                  ></ChatMessageUser>
+                                  dijo
+                                </b>: {{ message.text }}
                             </li>
                         </ul>
                     </LoadingContext>
@@ -95,6 +103,7 @@ export default {
                             id="text"
                             class="form-control"
                             v-model="newMessage.text"
+                            style="resize: none;"
                         ></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Enviar</button>
